@@ -1,0 +1,34 @@
+version: "2"
+
+services:
+    composer:
+        image: library/composer
+        volumes:
+            - $PWD:/app
+
+    php:
+        image: bakabot/php-dev
+        depends_on:
+            - mysql
+            - postgres
+        environment:
+            WAIT_HOSTS: mysql:3306,postgres:5432
+        links:
+            - mysql
+            - postgres
+        volumes:
+            - $PWD:/app
+
+    mysql:
+        image: library/mariadb:10
+        environment:
+            MYSQL_DATABASE: tablegateway_test
+            MYSQL_INITDB_SKIP_TZINFO: 1
+            MYSQL_ROOT_PASSWORD: test
+
+    postgres:
+        image: library/postgres:13
+        environment:
+            POSTGRES_DB: tablegateway_test
+            POSTGRES_PASSWORD: test
+            POSTGRES_USER: root

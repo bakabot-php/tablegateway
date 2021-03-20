@@ -1,0 +1,11 @@
+language: minimal
+
+services:
+    - docker
+
+before_script:
+    - docker --version
+    - docker-compose --version
+
+script:
+    - make ci
