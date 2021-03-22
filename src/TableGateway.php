@@ -6,6 +6,7 @@ namespace Bakabot\TableGateway;
 
 use Bakabot\TableGateway\Exception\InitializationException;
 use Doctrine\DBAL\Connection;
+use ReflectionClass;
 use Throwable;
 
 /**
@@ -13,7 +14,7 @@ use Throwable;
  */
 abstract class TableGateway extends AbstractTableGateway
 {
-    use ClassBasedTableNameTrait;
+    private ?ReflectionClass $reflection = null;
 
     /**
      * @param T $rowGatewayPrototype
@@ -25,7 +26,7 @@ abstract class TableGateway extends AbstractTableGateway
         ?Connection $connection = null,
         ?RowGatewayHydrator $rowGatewayHydrator = null
     ) {
-        $this->tableName = $this->inferTableName();
+        $this->tableName = $this->determineTableName();
 
         $connection = $connection ?? GlobalConnection::get();
 
@@ -37,6 +38,28 @@ abstract class TableGateway extends AbstractTableGateway
         );
     }
 
+    private function getReflectionClass(): ReflectionClass
+    {
+        if (!isset($this->reflection)) {
+            $this->reflection = new ReflectionClass(static::class);
+        }
+
+        return $this->reflection;
+    }
+
+    private function inferTableName(): string
+    {
+        $tableName = strtolower(preg_replace('/(?<!^)[A-Z]/', '_$0', $this->getReflectionClass()->getShortName()));
+        $tableName = str_replace('_table', '', $tableName);
+
+        return $tableName;
+    }
+
+    protected function determineTableName(): string
+    {
+        return $this->inferTableName();
+    }
+
     /**
      * @return array<int, array<string, mixed>>
      */
@@ -45,7 +68,7 @@ abstract class TableGateway extends AbstractTableGateway
         return [];
     }
 
-    final protected function postInitialize(): void
+    protected function postInitialize(): void
     {
         $seedData = $this->getSeedData();
 

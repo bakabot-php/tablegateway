@@ -99,12 +99,7 @@ abstract class AbstractTableGateway implements Countable, Stringable
      */
     private function mergeDefaultValues(int $id, array $data): array
     {
-        $defaults = [];
-        foreach ($this->getTableDefinition()->getColumns() as $column) {
-            $defaults[$column->getName()] = $column->getDefault();
-        }
-
-        return array_replace($defaults, $data, ['id' => $id]);
+        return array_replace($this->getDefaultValues(), $data, ['id' => $id]);
     }
 
     /**
@@ -121,6 +116,16 @@ abstract class AbstractTableGateway implements Countable, Stringable
         }
 
         return $this->columnTypes;
+    }
+
+    protected function getDefaultValues(): array
+    {
+        $defaults = [];
+        foreach ($this->getTableDefinition()->getColumns() as $column) {
+            $defaults[$column->getName()] = $column->getDefault();
+        }
+
+        return $defaults;
     }
 
     final protected function getQueryBuilder(): QueryBuilder

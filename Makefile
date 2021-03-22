@@ -9,7 +9,8 @@ csdiff: vendor
 csfix: vendor
 	docker-compose run --rm php vendor/bin/php-cs-fixer fix
 
-database: cleanup
+database:
+	$(MAKE) cleanup
 	docker-compose up -d mysql postgres
 
 psalm: vendor
