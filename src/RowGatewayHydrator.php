@@ -23,24 +23,15 @@ final class RowGatewayHydrator
      */
     public static function factory(Connection $connection, array $columnTypes): self
     {
-        $valueConverter = static function (string $column, mixed $value) use ($columnTypes, $connection): mixed {
-            return $connection->convertToPHPValue($value, $columnTypes[$column]);
-        };
-
-        $hydrator = function (array $data, bool $convertValues) use ($columnTypes, $valueConverter): void {
+        $hydrator = function (array $data) use ($columnTypes, $connection): void {
             /** @var array<string, mixed> $data */
             $this->id = $id = (int) $data['id'];
             $this->rowGatewayData = ['id' => $id];
 
             unset($data['id']);
 
-            /** @var mixed $value */
             foreach ($data as $column => $value) {
-                if ($convertValues) {
-                    /** @var mixed $value */
-                    $value = $valueConverter($column, $value);
-                }
-
+                $value = $connection->convertToPHPValue($value, $columnTypes[$column]);
                 $this->rowGatewayData[$column] = $value;
 
                 if (isset($columnTypes[$column])) {
@@ -63,8 +54,8 @@ final class RowGatewayHydrator
         return new self($hydrator);
     }
 
-    public function hydrate(RowGateway $rowGateway, array $data, bool $convertValues): void
+    public function hydrate(RowGateway $rowGateway, array $data): void
     {
-        $this->hydrator->call($rowGateway, $data, $convertValues);
+        $this->hydrator->call($rowGateway, $data);
     }
 }

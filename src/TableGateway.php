@@ -4,7 +4,9 @@ declare(strict_types = 1);
 
 namespace Bakabot\TableGateway;
 
+use Bakabot\TableGateway\Exception\InitializationException;
 use Doctrine\DBAL\Connection;
+use Throwable;
 
 /**
  * @template T of RowGateway
@@ -51,10 +53,14 @@ abstract class TableGateway extends AbstractTableGateway
             return;
         }
 
-        $this->connection->transactional(function () use ($seedData) {
-            foreach ($seedData as $row) {
-                $this->create($row);
-            }
-        });
+        try {
+            $this->connection->transactional(function () use ($seedData) {
+                foreach ($seedData as $row) {
+                    $this->create($row);
+                }
+            });
+        } catch (Throwable $ex) {
+            throw InitializationException::seedingError($this, $ex);
+        }
     }
 }

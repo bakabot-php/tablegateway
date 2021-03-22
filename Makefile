@@ -13,7 +13,7 @@ database: cleanup
 	docker-compose up -d mysql postgres
 
 psalm: vendor
-	docker-compose run --rm php vendor/bin/psalm
+	docker-compose run --rm php vendor/bin/psalm --shepherd
 
 tests: vendor database
 	docker-compose run --rm php -dxdebug.mode=coverage vendor/bin/phpunit

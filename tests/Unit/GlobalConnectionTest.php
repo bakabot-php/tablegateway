@@ -4,6 +4,7 @@ declare(strict_types = 1);
 
 namespace Bakabot\TableGateway\Unit;
 
+use Bakabot\TableGateway\Exception\NoGlobalConnectionException;
 use Bakabot\TableGateway\GlobalConnection;
 use Doctrine\DBAL\Connection;
 use PDO;
@@ -15,6 +16,14 @@ use PHPUnit\Framework\TestCase;
  */
 class GlobalConnectionTest extends TestCase
 {
+    /** @test */
+    public function errors_when_no_global_connection_set(): void
+    {
+        $this->expectExceptionObject(new NoGlobalConnectionException());
+
+        GlobalConnection::get();
+    }
+
     /** @test */
     public function can_create_dbal_connection_from_pdo(): void
     {

@@ -4,9 +4,9 @@ declare(strict_types = 1);
 
 namespace Bakabot\TableGateway;
 
+use Bakabot\TableGateway\Exception\NoGlobalConnectionException;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\DriverManager;
-use LogicException;
 use PDO;
 
 final class GlobalConnection
@@ -29,7 +29,7 @@ final class GlobalConnection
     public static function get(): Connection
     {
         if (self::$instance === null) {
-            throw new LogicException();
+            throw new NoGlobalConnectionException();
         }
 
         return self::$instance;

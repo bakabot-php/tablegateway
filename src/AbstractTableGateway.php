@@ -4,6 +4,8 @@ declare(strict_types = 1);
 
 namespace Bakabot\TableGateway;
 
+use Bakabot\TableGateway\Exception\InitializationException;
+use Bakabot\TableGateway\Exception\RowNotFoundException;
 use Countable;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Query\QueryBuilder;
@@ -12,6 +14,7 @@ use Doctrine\DBAL\Schema\AbstractSchemaManager;
 use Doctrine\DBAL\Schema\Table;
 use Generator;
 use Stringable;
+use Throwable;
 
 /**
  * @internal
@@ -52,15 +55,23 @@ abstract class AbstractTableGateway implements Countable, Stringable
 
     /**
      * @param array<string, mixed> $data
-     * @param bool $convertValues
      * @return T
      */
-    private function cloneRowGateway(array $data, bool $convertValues = true): RowGateway
+    private function cloneRowGateway(array $data): RowGateway
     {
         $copy = clone $this->rowGatewayPrototype;
-        $this->rowGatewayHydrator->hydrate($copy, $data, $convertValues);
+        $this->rowGatewayHydrator->hydrate($copy, $data);
 
         return $copy;
+    }
+
+    private function identify(int|RowGateway $identity): int
+    {
+        if (is_int($identity)) {
+            return $identity;
+        }
+
+        return $identity->getId();
     }
 
     private function initialize(): void
@@ -72,8 +83,28 @@ abstract class AbstractTableGateway implements Countable, Stringable
             return;
         }
 
-        $schemaManager->createTable($this->getTableDefinition());
+        try {
+            $schemaManager->createTable($this->getTableDefinition());
+        } catch (Throwable $ex) {
+            throw InitializationException::tableCreationError($this, $ex);
+        }
+
         $this->postInitialize();
+    }
+
+    /**
+     * @param int $id
+     * @param array<string, mixed> $data
+     * @return array<string, mixed>
+     */
+    private function mergeDefaultValues(int $id, array $data): array
+    {
+        $defaults = [];
+        foreach ($this->getTableDefinition()->getColumns() as $column) {
+            $defaults[$column->getName()] = $column->getDefault();
+        }
+
+        return array_replace($defaults, $data, ['id' => $id]);
     }
 
     /**
@@ -135,13 +166,6 @@ abstract class AbstractTableGateway implements Countable, Stringable
         }
     }
 
-    final public function clear(): void
-    {
-        $this->connection->executeStatement(
-            $this->connection->getDatabasePlatform()->getTruncateTableSQL($this->tableName)
-        );
-    }
-
     final public function count(): int
     {
         $qb = $this
@@ -172,27 +196,31 @@ abstract class AbstractTableGateway implements Countable, Stringable
 
         assert(is_int($id));
 
-        return $this->get($id);
+        return $this->cloneRowGateway($this->mergeDefaultValues($id, $data));
     }
 
-    final public function delete(int $id): bool
+    final public function delete(int|RowGateway $identity): bool
     {
+        $id = $this->identify($identity);
+
         $success = $this->connection->transactional(
-            function (Connection $conn) use ($id): bool {
+            function (Connection $conn) use ($id) {
                 return $conn->delete($this->tableName, ['id' => $id], $this->getColumnTypes()) > 0;
             }
         );
 
-        assert(is_bool($success));
+        if ($success && $identity instanceof RowGateway) {
+            $this->rowGatewayHydrator->hydrate($identity, ['id' => 0]);
+        }
 
         return $success;
     }
 
     /**
      * @param int $id
-     * @return T|null
+     * @return T
      */
-    final public function get(int $id): ?RowGateway
+    final public function find(int $id): RowGateway
     {
         $query = $this->getQueryBuilder();
         $query = $query
@@ -205,18 +233,18 @@ abstract class AbstractTableGateway implements Countable, Stringable
         $data = $result->fetchAssociative();
 
         if (!$data) {
-            return null;
+            throw RowNotFoundException::lookupError($this, $id);
         }
 
         return $this->cloneRowGateway($data);
     }
 
     /**
-     * @param int $id
+     * @param int|RowGateway $identity
      * @param array<string, mixed> $updatedFields
      * @return bool
      */
-    final public function update(int $id, array $updatedFields): bool
+    final public function update(int|RowGateway $identity, array $updatedFields): bool
     {
         unset($updatedFields['id']);
 
@@ -224,13 +252,17 @@ abstract class AbstractTableGateway implements Countable, Stringable
             return false;
         }
 
+        $id = $this->identify($identity);
+
         $success = $this->connection->transactional(
             function (Connection $conn) use ($id, $updatedFields) {
                 return $conn->update($this->tableName, $updatedFields, ['id' => $id], $this->getColumnTypes()) > 0;
             }
         );
 
-        assert(is_bool($success));
+        if ($success && $identity instanceof RowGateway) {
+            $this->rowGatewayHydrator->hydrate($identity, array_replace(['id' => $id], $updatedFields));
+        }
 
         return $success;
     }

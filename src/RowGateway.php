@@ -22,7 +22,7 @@ class RowGateway
     }
 
     /**
-     * @psalm-return array<string, mixed>
+     * @return array<string, mixed>
      */
     final public function toArray(): array
     {

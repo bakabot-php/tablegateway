@@ -13,7 +13,17 @@ class RowGatewayHydratorTest extends TestCase
 {
     private function createHydrator(array $columns = []): RowGatewayHydrator
     {
-        return RowGatewayHydrator::factory($this->createMock(Connection::class), $columns);
+        $connection = $this
+            ->getMockBuilder(Connection::class)
+            ->disableOriginalConstructor()
+            ->onlyMethods(['convertToPHPValue'])
+            ->getMock();
+
+        $connection
+            ->method('convertToPHPValue')
+            ->willReturnArgument(0);
+
+        return RowGatewayHydrator::factory($connection, $columns);
     }
 
     /** @test */
@@ -29,7 +39,7 @@ class RowGatewayHydratorTest extends TestCase
         };
 
         $hydrator = $this->createHydrator(['name' => 'string']);
-        $hydrator->hydrate($rowPrototype, ['id' => 1, 'name' => 'Simple Test'], false);
+        $hydrator->hydrate($rowPrototype, ['id' => 1, 'name' => 'Simple Test']);
 
         self::assertSame('Simple Test', $rowPrototype->getName());
     }
@@ -47,7 +57,7 @@ class RowGatewayHydratorTest extends TestCase
         };
 
         $hydrator = $this->createHydrator(['is_winner' => 'bool']);
-        $hydrator->hydrate($rowPrototype, ['id' => 1, 'is_winner' => true], false);
+        $hydrator->hydrate($rowPrototype, ['id' => 1, 'is_winner' => true]);
 
         self::assertTrue($rowPrototype->isWinner());
     }
@@ -65,7 +75,7 @@ class RowGatewayHydratorTest extends TestCase
         };
 
         $hydrator = $this->createHydrator(['is_winner' => 'bool']);
-        $hydrator->hydrate($rowPrototype, ['id' => 1, 'is_winner' => true], false);
+        $hydrator->hydrate($rowPrototype, ['id' => 1, 'is_winner' => true]);
 
         self::assertTrue($rowPrototype->isWinner());
     }

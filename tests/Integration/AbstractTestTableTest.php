@@ -4,10 +4,12 @@ declare(strict_types = 1);
 
 namespace Bakabot\TableGateway\Integration;
 
+use Bakabot\TableGateway\Exception\RowNotFoundException;
 use Bakabot\TableGateway\Integration\Table\BeatlesMembersTable;
 use Bakabot\TableGateway\RowGateway;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\DriverManager;
+use LogicException;
 use PHPUnit\Framework\TestCase;
 use Throwable;
 
@@ -68,7 +70,6 @@ abstract class AbstractTestTableTest extends TestCase
     public function creates_table_automagically(): void
     {
         $table = (string) static::getTestTable();
-
         $schemaManager = static::getDbalConnection()->getSchemaManager();
 
         self::assertTrue($schemaManager->tablesExist((array) $table));
@@ -76,8 +77,6 @@ abstract class AbstractTestTableTest extends TestCase
 
     /**
      * @test
-     * @depends creates_table_automagically
-     *
      * @see BeatlesMembersTable::getSeedData()
      */
     public function can_fetch_pre_seeded_data(): void
@@ -104,9 +103,7 @@ abstract class AbstractTestTableTest extends TestCase
 
     /**
      * @test
-     * @depends creates_table_automagically
-     *
-     * @see BeatlesMembersTable::getSeedData()
+     * @see BeatlesMembersTable::getTableDefinition()
      */
     public function can_insert_new_row(): RowGateway
     {
@@ -125,8 +122,6 @@ abstract class AbstractTestTableTest extends TestCase
 
     /**
      * @test
-     * @depends creates_table_automagically
-     *
      * @see BeatlesMembersTable::getTableDefinition()
      */
     public function can_insert_new_row_with_defaults_applied(): RowGateway
@@ -152,21 +147,12 @@ abstract class AbstractTestTableTest extends TestCase
     {
         $id = $row->getId();
         $table = static::getTestTable();
-        $rowCopy = $table->get($id);
+        $rowCopy = $table->find($id);
 
         self::assertEquals($row->toArray(), $rowCopy->toArray());
         self::assertSame($id, $rowCopy->getId());
 
         return $id;
-    }
-
-    /**
-     * @test
-     * @depends can_lookup_row_by_id
-     */
-    public function cannot_lookup_row_by_unknown_id(): void
-    {
-        self::assertNull(static::getTestTable()->get(self::UNKNOWN_ID));
     }
 
     /**
@@ -185,6 +171,18 @@ abstract class AbstractTestTableTest extends TestCase
 
     /**
      * @test
+     */
+    public function cannot_lookup_row_by_unknown_id(): void
+    {
+        $table = static::getTestTable();
+
+        $this->expectExceptionObject(RowNotFoundException::lookupError($table, self::UNKNOWN_ID));
+
+        $table->find(self::UNKNOWN_ID);
+    }
+
+    /**
+     * @test
      * @depends can_lookup_row_by_id
      */
     public function can_update_row_by_id(int $id): void
@@ -192,6 +190,19 @@ abstract class AbstractTestTableTest extends TestCase
         $table = static::getTestTable();
 
         self::assertTrue($table->update($id, ['name' => 'otto']));
+    }
+
+    /**
+     * @test
+     * @depends can_insert_new_row
+     */
+    public function can_update_row_by_entity(RowGateway $row): void
+    {
+        $table = static::getTestTable();
+
+        $table->update($row, ['is_best_beatle' => true]);
+
+        self::assertTrue($row->toArray()['is_best_beatle']);
     }
 
     /**
@@ -205,30 +216,26 @@ abstract class AbstractTestTableTest extends TestCase
 
     /**
      * @test
-     * @depends can_lookup_row_by_id
+     * @depends can_insert_new_row
      */
-    public function can_delete_row_by_id(int $id): void
+    public function can_delete_row_by_entity(RowGateway $row): void
     {
         $table = static::getTestTable();
 
-        self::assertTrue($table->delete($id));
+        self::assertTrue($table->delete($row));
+
+        try {
+            $row->getId();
+        } catch (LogicException) {
+            $this->addToAssertionCount(1);
+        }
     }
 
     /**
      * @test
-     * @depends can_delete_row_by_id
      */
     public function cannot_delete_row_by_unknown_id(): void
     {
         self::assertFalse(static::getTestTable()->delete(self::UNKNOWN_ID));
-    }
-
-    /** @test */
-    public function can_clear_table(): void
-    {
-        $table = static::getTestTable();
-        $table->clear();
-
-        self::assertSame(0, $table->count());
     }
 }
