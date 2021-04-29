@@ -19,11 +19,11 @@ class SqliteTestTableTest extends AbstractTestTableTest
     {
         parent::tearDownAfterClass();
 
-        @unlink(self::$sqliteFile);
+        @unlink(static::$sqliteFile);
     }
 
     protected static function getDbalConnectionUrl(): string
     {
-        return 'sqlite://' . self::$sqliteFile;
+        return 'sqlite://' . static::$sqliteFile;
     }
 }

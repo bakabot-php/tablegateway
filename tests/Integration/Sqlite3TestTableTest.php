@@ -8,6 +8,6 @@ class Sqlite3TestTableTest extends SqliteTestTableTest
 {
     protected static function getDbalConnectionUrl(): string
     {
-        return 'sqlite3:/' . self::SQLITE_FILE;
+        return 'sqlite3://' . static::$sqliteFile;
     }
 }

@@ -9,8 +9,6 @@ use Bakabot\TableGateway\Exception\RowNotFoundException;
 use Countable;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Query\QueryBuilder;
-use Doctrine\DBAL\Result;
-use Doctrine\DBAL\Schema\AbstractSchemaManager;
 use Doctrine\DBAL\Schema\Table;
 use Generator;
 use Stringable;
