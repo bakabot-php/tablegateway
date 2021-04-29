@@ -4,7 +4,7 @@ declare(strict_types = 1);
 
 namespace Bakabot\TableGateway\Integration;
 
-class MysqliTestTableTest extends AbstractTestTableTest
+class MysqiMysqliTestTableTest extends AbstractTestTableTest
 {
     protected static function getDbalConnectionUrl(): string
     {

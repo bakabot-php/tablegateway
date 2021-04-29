@@ -11,7 +11,7 @@ csfix: vendor
 
 database:
 	$(MAKE) cleanup
-	docker-compose up -d mysql postgres
+	docker-compose up -d mariadb mysql postgres
 
 psalm: vendor
 	docker-compose run --rm php vendor/bin/psalm --shepherd
