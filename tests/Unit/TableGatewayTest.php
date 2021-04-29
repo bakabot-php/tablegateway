@@ -28,10 +28,10 @@ class TableGatewayTest extends TestCase
         $connection = $this
             ->getMockBuilder(Connection::class)
             ->disableOriginalConstructor()
-            ->onlyMethods(['getSchemaManager'])
+            ->onlyMethods(['createSchemaManager'])
             ->getMock();
 
-        $connection->method('getSchemaManager')->willReturn($schemaManager);
+        $connection->method('createSchemaManager')->willReturn($schemaManager);
 
         return $this->getMockForAbstractClass(
             TableGateway::class,
@@ -86,10 +86,10 @@ class TableGatewayTest extends TestCase
         $connection = $this
             ->getMockBuilder(Connection::class)
             ->disableOriginalConstructor()
-            ->onlyMethods(['getSchemaManager'])
+            ->onlyMethods(['createSchemaManager'])
             ->getMock();
 
-        $connection->method('getSchemaManager')->willReturn($schemaManager);
+        $connection->method('createSchemaManager')->willReturn($schemaManager);
 
         new $className(null, $connection);
     }
@@ -112,10 +112,10 @@ class TableGatewayTest extends TestCase
         $connection = $this
             ->getMockBuilder(Connection::class)
             ->disableOriginalConstructor()
-            ->onlyMethods(['getSchemaManager', 'transactional'])
+            ->onlyMethods(['createSchemaManager', 'transactional'])
             ->getMock();
 
-        $connection->method('getSchemaManager')->willReturn($schemaManager);
+        $connection->method('createSchemaManager')->willReturn($schemaManager);
         $connection->expects(self::never())->method('transactional');
 
         new DummyTable(null, $connection);
@@ -144,10 +144,10 @@ class TableGatewayTest extends TestCase
         $connection = $this
             ->getMockBuilder(Connection::class)
             ->disableOriginalConstructor()
-            ->onlyMethods(['getSchemaManager', 'transactional'])
+            ->onlyMethods(['createSchemaManager', 'transactional'])
             ->getMock();
 
-        $connection->method('getSchemaManager')->willReturn($schemaManager);
+        $connection->method('createSchemaManager')->willReturn($schemaManager);
         $connection->method('transactional')->willThrowException(new RuntimeException('Insert failed.'));
 
         new BeatlesMembersTable(null, $connection);

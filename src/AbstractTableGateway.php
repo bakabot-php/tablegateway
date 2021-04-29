@@ -76,8 +76,7 @@ abstract class AbstractTableGateway implements Countable, Stringable
 
     private function initialize(): void
     {
-        /** @var AbstractSchemaManager $schemaManager */
-        $schemaManager = $this->connection->getSchemaManager();
+        $schemaManager = $this->connection->createSchemaManager();
 
         if ($schemaManager->tablesExist((array) $this->tableName)) {
             return;
@@ -158,13 +157,12 @@ abstract class AbstractTableGateway implements Countable, Stringable
      */
     final public function all(): Generator
     {
-        $query = $this
+        $result = $this
             ->getQueryBuilder()
             ->select('*')
-            ->orderBy('id', 'asc');
-
-        /** @var Result $result */
-        $result = $query->execute();
+            ->orderBy('id', 'asc')
+            ->executeQuery()
+        ;
 
         foreach ($result->iterateAssociative() as $data) {
             yield $this->cloneRowGateway($data);
@@ -173,12 +171,11 @@ abstract class AbstractTableGateway implements Countable, Stringable
 
     final public function count(): int
     {
-        $qb = $this
+        $result = $this
             ->getQueryBuilder()
-            ->select('COUNT(*)');
-
-        /** @var Result $result */
-        $result = $qb->execute();
+            ->select('COUNT(*)')
+            ->executeQuery()
+        ;
 
         return (int) $result->fetchFirstColumn()[0];
     }
@@ -227,14 +224,14 @@ abstract class AbstractTableGateway implements Countable, Stringable
      */
     final public function find(int $id): RowGateway
     {
-        $query = $this->getQueryBuilder();
-        $query = $query
+        $result = $this
+            ->getQueryBuilder()
             ->select('*')
             ->where('id = ?')
-            ->setParameter(0, $id, 'integer');
+            ->setParameter(0, $id, 'integer')
+            ->executeQuery()
+        ;
 
-        /** @var Result $result */
-        $result = $query->execute();
         $data = $result->fetchAssociative();
 
         if (!$data) {
@@ -294,13 +291,13 @@ abstract class AbstractTableGateway implements Countable, Stringable
      */
     final public function whereExpression(callable $expression): Generator
     {
-        $query = $this->getQueryBuilder();
-        $query = $query
-            ->select('*')
-            ->where($expression($query));
+        $qb = $this->getQueryBuilder();
 
-        /** @var Result $result */
-        $result = $query->execute();
+        $result = $qb
+            ->select('*')
+            ->where($expression($qb))
+            ->executeQuery()
+        ;
 
         foreach ($result->iterateAssociative() as $data) {
             yield $this->cloneRowGateway($data);
