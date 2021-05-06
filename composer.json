@@ -7,7 +7,7 @@
         "doctrine/dbal": "^3.0"
     },
     "require-dev": {
-        "bakabot/development": "^1.0",
+        "bakabot/development": "^2.0",
         "roave/security-advisories": "dev-latest"
     },
     "suggest": {
