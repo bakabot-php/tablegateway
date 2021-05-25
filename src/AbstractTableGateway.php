@@ -106,7 +106,7 @@ abstract class AbstractTableGateway implements Countable, Stringable
      */
     final protected function getColumnTypes(): array
     {
-        if (!isset($this->columnTypes)) {
+        if ($this->columnTypes === null) {
             $this->columnTypes = [];
 
             foreach ($this->getTableDefinition()->getColumns() as $column) {

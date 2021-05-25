@@ -16,12 +16,15 @@ abstract class TableGateway extends AbstractTableGateway
 {
     private ?ReflectionClass $reflection = null;
 
+    /** @var string */
+    protected const DELIMITER = '_';
+
     /**
      * @param T $rowGatewayPrototype
      * @param Connection|null $connection
      * @param RowGatewayHydrator|null $rowGatewayHydrator
      */
-    final public function __construct(
+    public function __construct(
         ?RowGateway $rowGatewayPrototype = null,
         ?Connection $connection = null,
         ?RowGatewayHydrator $rowGatewayHydrator = null
@@ -49,10 +52,17 @@ abstract class TableGateway extends AbstractTableGateway
 
     private function inferTableName(): string
     {
-        $tableName = strtolower(preg_replace('/(?<!^)[A-Z]/', '_$0', $this->getReflectionClass()->getShortName()));
-        $tableName = str_replace('_table', '', $tableName);
+        $inferredTableName = strtolower(
+            preg_replace(
+                '/(?<!^)[A-Z]/',
+                sprintf('%s$0', self::DELIMITER),
+                $this->getReflectionClass()->getShortName()
+            )
+        );
 
-        return $tableName;
+        $tableSuffix = sprintf('%s%s', self::DELIMITER, 'table');
+
+        return str_replace($tableSuffix, '', $inferredTableName);
     }
 
     protected function determineTableName(): string
