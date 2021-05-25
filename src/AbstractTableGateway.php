@@ -8,6 +8,7 @@ use Bakabot\TableGateway\Exception\InitializationException;
 use Bakabot\TableGateway\Exception\RowNotFoundException;
 use Countable;
 use Doctrine\DBAL\Connection;
+use Doctrine\DBAL\Query\Expression\CompositeExpression;
 use Doctrine\DBAL\Query\QueryBuilder;
 use Doctrine\DBAL\Schema\Table;
 use Generator;
@@ -30,14 +31,14 @@ abstract class AbstractTableGateway implements Countable, Stringable
 
     /**
      * @param string $tableName
-     * @param Connection $connection
      * @param T $rowGatewayPrototype
+     * @param Connection $connection
      * @param RowGatewayHydrator $rowGatewayHydrator
      */
     public function __construct(
         string $tableName,
-        Connection $connection,
         RowGateway $rowGatewayPrototype,
+        Connection $connection,
         RowGatewayHydrator $rowGatewayHydrator
     ) {
         $this->connection = $connection;
@@ -186,7 +187,7 @@ abstract class AbstractTableGateway implements Countable, Stringable
     final public function create(array $data): RowGateway
     {
         $id = $this->connection->transactional(
-            function (Connection $conn) use ($data) {
+            function (Connection $conn) use ($data): int {
                 unset($data['id']);
 
                 $conn->insert($this->tableName, $data, $this->getColumnTypes());
@@ -206,7 +207,7 @@ abstract class AbstractTableGateway implements Countable, Stringable
 
         /** @var bool $success */
         $success = $this->connection->transactional(
-            function (Connection $conn) use ($id) {
+            function (Connection $conn) use ($id): bool {
                 return $conn->delete($this->tableName, ['id' => $id], $this->getColumnTypes()) > 0;
             }
         );
@@ -258,7 +259,7 @@ abstract class AbstractTableGateway implements Countable, Stringable
 
         /** @var bool $success */
         $success = $this->connection->transactional(
-            function (Connection $conn) use ($id, $updatedFields) {
+            function (Connection $conn) use ($id, $updatedFields): bool {
                 return $conn->update($this->tableName, $updatedFields, ['id' => $id], $this->getColumnTypes()) > 0;
             }
         );
@@ -278,7 +279,7 @@ abstract class AbstractTableGateway implements Countable, Stringable
     final public function where(string $column, mixed $value): Generator
     {
         return $this->whereExpression(
-            function (QueryBuilder $qb) use ($column, $value) {
+            function (QueryBuilder $qb) use ($column, $value): CompositeExpression {
                 return $qb->expr()->and(
                     $qb->expr()->eq($column, $this->connection->quote($value))
                 );

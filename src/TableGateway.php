@@ -21,7 +21,7 @@ abstract class TableGateway extends AbstractTableGateway
      * @param Connection|null $connection
      * @param RowGatewayHydrator|null $rowGatewayHydrator
      */
-    public function __construct(
+    final public function __construct(
         ?RowGateway $rowGatewayPrototype = null,
         ?Connection $connection = null,
         ?RowGatewayHydrator $rowGatewayHydrator = null
@@ -32,9 +32,9 @@ abstract class TableGateway extends AbstractTableGateway
 
         parent::__construct(
             $this->tableName,
+            $rowGatewayPrototype ?? $this->getRowGatewayPrototype(),
             $connection,
-            $rowGatewayPrototype ?? new RowGateway(),
-            $rowGatewayHydrator ?? RowGatewayHydrator::factory($connection, $this->getColumnTypes())
+            $rowGatewayHydrator ?? RowGatewayHydrator::create($connection, $this->getColumnTypes())
         );
     }
 
@@ -60,6 +60,11 @@ abstract class TableGateway extends AbstractTableGateway
         return $this->inferTableName();
     }
 
+    protected function getRowGatewayPrototype(): RowGateway
+    {
+        return new RowGateway();
+    }
+
     /**
      * @return array<int, array<string, mixed>>
      */
@@ -77,7 +82,7 @@ abstract class TableGateway extends AbstractTableGateway
         }
 
         try {
-            $this->connection->transactional(function () use ($seedData) {
+            $this->connection->transactional(function () use ($seedData): void {
                 foreach ($seedData as $row) {
                     $this->create($row);
                 }

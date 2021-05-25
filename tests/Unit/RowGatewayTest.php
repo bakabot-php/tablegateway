@@ -26,7 +26,7 @@ class RowGatewayTest extends TestCase
         string $rowGatewayClass = RowGateway::class
     ): RowGateway {
         if (!isset($this->hydrator)) {
-            $this->hydrator = RowGatewayHydrator::factory($this->createMock(Connection::class), []);
+            $this->hydrator = RowGatewayHydrator::create($this->createMock(Connection::class), []);
         }
 
         $row = new $rowGatewayClass();

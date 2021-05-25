@@ -23,7 +23,7 @@ class RowGatewayHydratorTest extends TestCase
             ->method('convertToPHPValue')
             ->willReturnArgument(0);
 
-        return RowGatewayHydrator::factory($connection, $columns);
+        return RowGatewayHydrator::create($connection, $columns);
     }
 
     /** @test */

@@ -21,7 +21,7 @@ final class RowGatewayHydrator
      * @param array<string, string> $columnTypes
      * @return self
      */
-    public static function factory(Connection $connection, array $columnTypes): self
+    public static function create(Connection $connection, array $columnTypes): self
     {
         $hydrator = function (array $data) use ($columnTypes, $connection): void {
             /** @var array<string, mixed> $data */
