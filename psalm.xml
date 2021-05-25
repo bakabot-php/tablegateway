@@ -18,5 +18,35 @@
                 <file name="./src/RowGatewayHydrator.php" />
             </errorLevel>
         </InvalidScope>
+
+        <MixedArgument>
+            <errorLevel type="suppress">
+                <file name="./src/RowGatewayHydrator.php" />
+            </errorLevel>
+        </MixedArgument>
+
+        <MixedArrayAssignment>
+            <errorLevel type="suppress">
+                <file name="./src/RowGatewayHydrator.php" />
+            </errorLevel>
+        </MixedArrayAssignment>
+
+        <MixedAssignment>
+            <errorLevel type="suppress">
+                <file name="./src/RowGatewayHydrator.php" />
+            </errorLevel>
+        </MixedAssignment>
+
+        <MixedPropertyAssignment>
+            <errorLevel type="suppress">
+                <file name="./src/RowGatewayHydrator.php" />
+            </errorLevel>
+        </MixedPropertyAssignment>
+
+        <MixedPropertyFetch>
+            <errorLevel type="suppress">
+                <file name="./src/RowGatewayHydrator.php" />
+            </errorLevel>
+        </MixedPropertyFetch>
     </issueHandlers>
 </psalm>

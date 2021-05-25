@@ -15,9 +15,6 @@ use Stringable;
 use Throwable;
 
 /**
- * @internal
- * @psalm-internal Bakabot\TableGateway
- *
  * @template T of RowGateway
  */
 abstract class AbstractTableGateway implements Countable, Stringable
@@ -83,6 +80,7 @@ abstract class AbstractTableGateway implements Countable, Stringable
         try {
             $schemaManager->createTable($this->getTableDefinition());
         } catch (Throwable $ex) {
+            /** @psalm-suppress MixedArgumentTypeCoercion */
             throw InitializationException::tableCreationError($this, $ex);
         }
 
@@ -96,7 +94,10 @@ abstract class AbstractTableGateway implements Countable, Stringable
      */
     private function mergeDefaultValues(int $id, array $data): array
     {
-        return array_replace($this->getDefaultValues(), $data, ['id' => $id]);
+        /** @var array<string, mixed> $mergedDefaults */
+        $mergedDefaults = array_replace($this->getDefaultValues(), $data, ['id' => $id]);
+
+        return $mergedDefaults;
     }
 
     /**
@@ -203,6 +204,7 @@ abstract class AbstractTableGateway implements Countable, Stringable
     {
         $id = $this->identify($identity);
 
+        /** @var bool $success */
         $success = $this->connection->transactional(
             function (Connection $conn) use ($id) {
                 return $conn->delete($this->tableName, ['id' => $id], $this->getColumnTypes()) > 0;
@@ -254,6 +256,7 @@ abstract class AbstractTableGateway implements Countable, Stringable
 
         $id = $this->identify($identity);
 
+        /** @var bool $success */
         $success = $this->connection->transactional(
             function (Connection $conn) use ($id, $updatedFields) {
                 return $conn->update($this->tableName, $updatedFields, ['id' => $id], $this->getColumnTypes()) > 0;

@@ -14,7 +14,7 @@ database:
 	docker-compose up -d mariadb mysql postgres
 
 psalm: vendor
-	docker-compose run --rm php vendor/bin/psalm --shepherd
+	docker-compose run --rm php vendor/bin/psalm
 
 tests: vendor database
 	docker-compose run --rm php -dxdebug.mode=coverage vendor/bin/phpunit

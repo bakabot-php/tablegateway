@@ -40,7 +40,7 @@ abstract class TableGateway extends AbstractTableGateway
 
     private function getReflectionClass(): ReflectionClass
     {
-        if (!isset($this->reflection)) {
+        if ($this->reflection === null) {
             $this->reflection = new ReflectionClass(static::class);
         }
 
