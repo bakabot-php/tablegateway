@@ -9,6 +9,7 @@ use InvalidArgumentException;
 
 /**
  * @template T of RowGateway
+ * @extends TableGateway<T>
  */
 abstract class SuffixedTableGateway extends TableGateway
 {
@@ -60,7 +61,7 @@ abstract class SuffixedTableGateway extends TableGateway
         );
     }
 
-    public function getSuffix(): string
+    final public function getSuffix(): string
     {
         return $this->suffix;
     }

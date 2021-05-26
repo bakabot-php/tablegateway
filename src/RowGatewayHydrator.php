@@ -54,6 +54,10 @@ final class RowGatewayHydrator
         return new self($hydrator);
     }
 
+    /**
+     * @param RowGateway $rowGateway
+     * @param array<string, mixed> $data
+     */
     public function hydrate(RowGateway $rowGateway, array $data): void
     {
         $this->hydrator->call($rowGateway, $data);

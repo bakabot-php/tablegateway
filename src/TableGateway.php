@@ -11,6 +11,7 @@ use Throwable;
 
 /**
  * @template T of RowGateway
+ * @extends AbstractTableGateway<T>
  */
 abstract class TableGateway extends AbstractTableGateway
 {
@@ -20,7 +21,7 @@ abstract class TableGateway extends AbstractTableGateway
     protected const DELIMITER = '_';
 
     /**
-     * @param T $rowGatewayPrototype
+     * @param T|null $rowGatewayPrototype
      * @param Connection|null $connection
      * @param RowGatewayHydrator|null $rowGatewayHydrator
      */
@@ -32,12 +33,16 @@ abstract class TableGateway extends AbstractTableGateway
         $this->tableName = $this->determineTableName();
 
         $connection = $connection ?? GlobalConnection::get();
+        $rowGatewayHydrator = $rowGatewayHydrator ?? RowGatewayHydrator::create($connection, $this->getColumnTypes());
+
+        /** @var T $rowGatewayPrototype */
+        $rowGatewayPrototype = $rowGatewayPrototype ?? $this->getRowGatewayPrototype();
 
         parent::__construct(
             $this->tableName,
-            $rowGatewayPrototype ?? $this->getRowGatewayPrototype(),
+            $rowGatewayPrototype,
             $connection,
-            $rowGatewayHydrator ?? RowGatewayHydrator::create($connection, $this->getColumnTypes())
+            $rowGatewayHydrator
         );
     }
 
@@ -70,9 +75,15 @@ abstract class TableGateway extends AbstractTableGateway
         return $this->inferTableName();
     }
 
+    /**
+     * @return T
+     */
     protected function getRowGatewayPrototype(): RowGateway
     {
-        return new RowGateway();
+        /** @var T $rowGatewayPrototype */
+        $rowGatewayPrototype = new RowGateway();
+
+        return $rowGatewayPrototype;
     }
 
     /**
