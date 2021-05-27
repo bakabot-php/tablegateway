@@ -11,14 +11,18 @@ use PDO;
 
 final class GlobalConnection
 {
-    private static ?Connection $instance = null;
+    /** @var array<string, Connection> */
+    private static array $instances = [];
 
-    public static function fromPdo(PDO $pdo): void
+    /** @var string */
+    private const DEFAULT = 'default';
+
+    public static function fromPdo(PDO $pdo, string $name = self::DEFAULT): void
     {
         $driverName = $pdo->getAttribute(PDO::ATTR_DRIVER_NAME);
         assert(is_string($driverName));
 
-        self::$instance = DriverManager::getConnection(
+        self::$instances[$name] = DriverManager::getConnection(
             [
                 'driver' => sprintf('pdo_%s', $driverName),
                 'pdo' => $pdo,
@@ -26,17 +30,17 @@ final class GlobalConnection
         );
     }
 
-    public static function get(): Connection
+    public static function get(string $name = self::DEFAULT): Connection
     {
-        if (self::$instance === null) {
+        if (!isset(self::$instances[$name])) {
             throw new NoGlobalConnectionException();
         }
 
-        return self::$instance;
+        return self::$instances[$name];
     }
 
-    public static function set(Connection $instance): void
+    public static function set(Connection $instance, string $name = self::DEFAULT): void
     {
-        self::$instance = $instance;
+        self::$instances[$name] = $instance;
     }
 }
