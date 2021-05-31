@@ -21,7 +21,7 @@ abstract class AbstractTestTableTest extends TestCase
 
     public static function dropTable(): void
     {
-        $schemaManager = static::getDbalConnection()->getSchemaManager();
+        $schemaManager = static::getDbalConnection()->createSchemaManager();
 
         $tableName = (string) static::getTestTable();
 
@@ -70,7 +70,7 @@ abstract class AbstractTestTableTest extends TestCase
     public function creates_table_automagically(): void
     {
         $table = (string) static::getTestTable();
-        $schemaManager = static::getDbalConnection()->getSchemaManager();
+        $schemaManager = static::getDbalConnection()->createSchemaManager();
 
         self::assertTrue($schemaManager->tablesExist((array) $table));
     }
