@@ -281,7 +281,7 @@ abstract class AbstractTableGateway implements Countable, Stringable
         return $this->whereExpression(
             function (QueryBuilder $qb) use ($column, $value): CompositeExpression {
                 return $qb->expr()->and(
-                    $qb->expr()->eq($column, $this->connection->quote($value))
+                    $qb->expr()->eq($column, $qb->createNamedParameter($value))
                 );
             }
         );
