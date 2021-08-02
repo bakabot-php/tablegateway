@@ -10,7 +10,7 @@ class SqliteTestTableTest extends AbstractTestTableTest
 
     public static function setUpBeforeClass(): void
     {
-        self::$sqliteFile = tempnam('/tmp', 'tablegateway_test_');
+        self::$sqliteFile = uniqid('tablegateway_test_', true) . '.sqlite';
 
         parent::setUpBeforeClass();
     }

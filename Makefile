@@ -1,3 +1,4 @@
+.PHONY: ci tests
 ci: csdiff database psalm tests cleanup
 
 cleanup:

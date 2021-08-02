@@ -34,15 +34,11 @@ abstract class AbstractTestTableTest extends TestCase
 
     public static function setUpBeforeClass(): void
     {
-        parent::setUpBeforeClass();
-
         static::dropTable();
     }
 
     public static function tearDownAfterClass(): void
     {
-        parent::tearDownAfterClass();
-
         static::dropTable();
     }
 
